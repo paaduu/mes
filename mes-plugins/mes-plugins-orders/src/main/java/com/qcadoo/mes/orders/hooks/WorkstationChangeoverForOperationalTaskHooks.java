@@ -32,8 +32,15 @@ public class WorkstationChangeoverForOperationalTaskHooks {
         Entity currentOperationalTask = workstationChangeoverForOperationalTask.getBelongsToField(WorkstationChangeoverForOperationalTaskFields.CURRENT_OPERATIONAL_TASK);
         Entity previousOperationalTask = workstationChangeoverForOperationalTask.getBelongsToField(WorkstationChangeoverForOperationalTaskFields.PREVIOUS_OPERATIONAL_TASK);
 
-        if (Objects.isNull(currentOperationalTask) || Objects.isNull(previousOperationalTask)) {
+        if (Objects.isNull(currentOperationalTask)) {
             workstationChangeoverForOperationalTask.addError(workstationChangeoverForOperationalTaskDD.getField(WorkstationChangeoverForOperationalTaskFields.CURRENT_OPERATIONAL_TASK),
+                    "qcadooView.validate.field.error.missing");
+
+            return false;
+        }
+
+        if (Objects.isNull(previousOperationalTask)) {
+            workstationChangeoverForOperationalTask.addError(workstationChangeoverForOperationalTaskDD.getField(WorkstationChangeoverForOperationalTaskFields.PREVIOUS_OPERATIONAL_TASK),
                     "qcadooView.validate.field.error.missing");
 
             return false;

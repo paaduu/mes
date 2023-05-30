@@ -129,7 +129,7 @@
 		<model:model-hook plugin="orders" model="operationalTask">
 			<model:onSave
 					class="com.qcadoo.mes.productionScheduling.hooks.OperationalTaskHooksPS"
-					method="setStaff"/>
+					method="onSave"/>
 		</model:model-hook>
 
 		<model:model-hook plugin="orders" model="schedule">

@@ -280,7 +280,7 @@ public class ScheduleStateService extends BasicStateService implements ScheduleS
             }
             operationalTaskHooks.setInitialState(operationalTask);
             operationalTaskHooks.fillNameAndDescription(operationalTask);
-            operationalTaskHooksPS.setStaff(operationalTaskDD, operationalTask);
+            operationalTaskHooksPS.setStaff(operationalTaskDD, operationalTask, true, true);
             operationalTask = operationalTaskDD.fastSave(operationalTask);
             List<Entity> workstationChangeovers = position.getHasManyField(SchedulePositionFields.CURRENT_WORKSTATION_CHANGEOVER_FOR_SCHEDULE_POSITIONS);
             for (Entity workstationChangeover : workstationChangeovers) {
