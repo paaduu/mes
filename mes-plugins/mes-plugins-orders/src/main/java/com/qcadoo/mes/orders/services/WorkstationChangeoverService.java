@@ -40,6 +40,17 @@ public class WorkstationChangeoverService {
     @Autowired
     private WorkstationChangeoverNormService workstationChangeoverNormService;
 
+    public List<Entity> findWorkstationChangeoversForSchedulePosition(final Entity schedulePosition) {
+        return findWorkstationChangeoversForSchedulePosition(schedulePosition, null);
+    }
+
+    public List<Entity> findWorkstationChangeoversForSchedulePosition(final Entity schedulePosition, final Entity previousSchedulePosition) {
+        Date startTime = schedulePosition.getDateField(SchedulePositionFields.START_TIME);
+        Entity workstation = schedulePosition.getBelongsToField(SchedulePositionFields.WORKSTATION);
+
+        return findWorkstationChangeoversForSchedulePosition(startTime, workstation, schedulePosition, previousSchedulePosition);
+    }
+
     public List<Entity> findWorkstationChangeoversForSchedulePosition(final Date startDate, final Entity workstation,
                                                                       final Entity schedulePosition,
                                                                       final Entity previousSchedulePosition) {
@@ -150,7 +161,6 @@ public class WorkstationChangeoverService {
             workstationChangeover.setField(WorkstationChangeoverForSchedulePositionFields.FINISH_DATE, finishDate);
         }
     }
-
 
     public List<Entity> findWorkstationChangeoverForOperationalTasks(final Entity operationalTask) {
         List<Entity> workstationChangeoverForOperationalTasks = Lists.newArrayList();
@@ -320,7 +330,7 @@ public class WorkstationChangeoverService {
 
             SearchCriteriaBuilder searchCriteriaBuilder = getOperationalTaskDD().find();
 
-            addWorkstationAndStartDateSearchRestrictions(searchCriteriaBuilder, workstation, startDate);
+            addWorkstationAndFinishDateSearchRestrictions(searchCriteriaBuilder, workstation, startDate);
             addIdSearchRestrictions(searchCriteriaBuilder, operationalTask.getId());
 
             return Optional.ofNullable(searchCriteriaBuilder
@@ -340,7 +350,7 @@ public class WorkstationChangeoverService {
 
             SearchCriteriaBuilder searchCriteriaBuilder = getOperationalTaskDD().find();
 
-            addWorkstationAndStartDateSearchRestrictions(searchCriteriaBuilder, workstation, startDate);
+            addWorkstationAndFinishDateSearchRestrictions(searchCriteriaBuilder, workstation, startDate);
             addIdSearchRestrictions(searchCriteriaBuilder, skipOperationalTask.getId());
 
             return Optional.ofNullable(searchCriteriaBuilder
@@ -358,7 +368,7 @@ public class WorkstationChangeoverService {
 
         SearchCriteriaBuilder searchCriteriaBuilder = getOperationalTaskDD().find();
 
-        addWorkstationAndStartDateSearchRestrictions(searchCriteriaBuilder, workstation, startDate);
+        addWorkstationAndFinishDateSearchRestrictions(searchCriteriaBuilder, workstation, startDate);
         addIdSearchRestrictions(searchCriteriaBuilder, skipOperationalTask.getId());
 
         return searchCriteriaBuilder
@@ -369,25 +379,10 @@ public class WorkstationChangeoverService {
     private Entity getPreviousOperationalTask(final Entity workstation, final Date operationalTaskStartDate) {
         SearchCriteriaBuilder searchCriteriaBuilder = getOperationalTaskDD().find();
 
-        addWorkstationAndStartDateSearchRestrictions(searchCriteriaBuilder, workstation, operationalTaskStartDate);
+        addWorkstationAndFinishDateSearchRestrictions(searchCriteriaBuilder, workstation, operationalTaskStartDate);
 
         return searchCriteriaBuilder.addOrder(SearchOrders.desc(OperationalTaskFields.FINISH_DATE))
                 .setMaxResults(1).uniqueResult();
-    }
-
-    private void addWorkstationAndStartDateSearchRestrictions(final SearchCriteriaBuilder searchCriteriaBuilder,
-                                                              final Entity workstation, final Date startDate) {
-        searchCriteriaBuilder.createAlias(OperationalTaskFields.WORKSTATION, OperationalTaskFields.WORKSTATION, JoinType.LEFT);
-        searchCriteriaBuilder.add(SearchRestrictions.eq(OperationalTaskFields.WORKSTATION + L_DOT + L_ID, workstation.getId()));
-        searchCriteriaBuilder.add(SearchRestrictions.ne(OperationalTaskFields.STATE, OperationalTaskState.REJECTED.getStringValue()));
-        searchCriteriaBuilder.add(SearchRestrictions.le(OperationalTaskFields.FINISH_DATE, startDate));
-    }
-
-    private static void addIdSearchRestrictions(final SearchCriteriaBuilder searchCriteriaBuilder,
-                                                final Long operationalTaskId) {
-        if (Objects.nonNull(operationalTaskId)) {
-            searchCriteriaBuilder.add(SearchRestrictions.idNe(operationalTaskId));
-        }
     }
 
     public Optional<Entity> findNextOperationalTask(final Entity operationalTask) {
@@ -399,7 +394,7 @@ public class WorkstationChangeoverService {
 
                 SearchCriteriaBuilder searchCriteriaBuilder = getOperationalTaskDD().find();
 
-                addWorkstationAndFinishDateSearchRestrictions(searchCriteriaBuilder, workstation, finishDate);
+                addWorkstationAndStartDateSearchRestrictions(searchCriteriaBuilder, workstation, finishDate);
                 addIdSearchRestrictions(searchCriteriaBuilder, operationalTask.getId());
 
                 return Optional.ofNullable(searchCriteriaBuilder
@@ -414,11 +409,44 @@ public class WorkstationChangeoverService {
     }
 
     private void addWorkstationAndFinishDateSearchRestrictions(final SearchCriteriaBuilder searchCriteriaBuilder,
+                                                               final Entity workstation, final Date startDate) {
+        addWorkstationSearchRestrictions(searchCriteriaBuilder, OperationalTaskFields.WORKSTATION, workstation);
+        addStateSearchRestrictions(searchCriteriaBuilder, OperationalTaskFields.STATE, OperationalTaskState.REJECTED.getStringValue());
+        addDateLeSearchRestrictions(searchCriteriaBuilder, OperationalTaskFields.FINISH_DATE, startDate);
+    }
+
+    private void addWorkstationAndStartDateSearchRestrictions(final SearchCriteriaBuilder searchCriteriaBuilder,
                                                               final Entity workstation, final Date finishDate) {
-        searchCriteriaBuilder.createAlias(OperationalTaskFields.WORKSTATION, OperationalTaskFields.WORKSTATION, JoinType.LEFT);
-        searchCriteriaBuilder.add(SearchRestrictions.eq(OperationalTaskFields.WORKSTATION + L_DOT + L_ID, workstation.getId()));
-        searchCriteriaBuilder.add(SearchRestrictions.ne(OperationalTaskFields.STATE, OperationalTaskState.REJECTED.getStringValue()));
-        searchCriteriaBuilder.add(SearchRestrictions.ge(OperationalTaskFields.START_DATE, finishDate));
+        addWorkstationSearchRestrictions(searchCriteriaBuilder, OperationalTaskFields.WORKSTATION, workstation);
+        addStateSearchRestrictions(searchCriteriaBuilder, OperationalTaskFields.STATE, OperationalTaskState.REJECTED.getStringValue());
+        addDateGeSearchRestrictions(searchCriteriaBuilder, OperationalTaskFields.START_DATE, finishDate);
+    }
+
+    private void addWorkstationSearchRestrictions(final SearchCriteriaBuilder searchCriteriaBuilder,
+                                                  final String workstationFieldName, final Entity workstation) {
+        searchCriteriaBuilder.createAlias(workstationFieldName, workstationFieldName, JoinType.LEFT);
+        searchCriteriaBuilder.add(SearchRestrictions.eq(workstationFieldName + L_DOT + L_ID, workstation.getId()));
+    }
+
+    private void addDateLeSearchRestrictions(final SearchCriteriaBuilder searchCriteriaBuilder,
+                                           final String dateFieldName, final Date date) {
+        searchCriteriaBuilder.add(SearchRestrictions.le(dateFieldName, date));
+    }
+
+    private void addDateGeSearchRestrictions(final SearchCriteriaBuilder searchCriteriaBuilder,
+                                             final String dateFieldName, final Date date) {
+        searchCriteriaBuilder.add(SearchRestrictions.ge(dateFieldName, date));
+    }
+
+    private void addStateSearchRestrictions(final SearchCriteriaBuilder searchCriteriaBuilder,
+                                            final String stateFieldName, final String state) {
+        searchCriteriaBuilder.add(SearchRestrictions.ne(stateFieldName, state));
+    }
+
+    private static void addIdSearchRestrictions(final SearchCriteriaBuilder searchCriteriaBuilder, final Long id) {
+        if (Objects.nonNull(id)) {
+            searchCriteriaBuilder.add(SearchRestrictions.idNe(id));
+        }
     }
 
     public boolean hasWorkstationChangeoverForOperationalTasks(final Entity workstationChangeoverNorm) {

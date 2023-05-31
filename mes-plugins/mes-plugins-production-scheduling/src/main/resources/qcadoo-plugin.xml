@@ -144,6 +144,12 @@
 					method="onCopy"/>
 		</model:model-hook>
 
+		<model:model-hook plugin="orders" model="schedulePosition">
+			<model:onSave
+					class="com.qcadoo.mes.productionScheduling.hooks.SchedulePositionHooksPS"
+					method="onSave"/>
+		</model:model-hook>
+
 		<menu:menu-category name="calculations" />
 
 		<menu:menu-item view="orderTimePrediction" name="orderTimePrediction"

@@ -54,6 +54,8 @@
             <validatesScale max="5"/>
         </decimal>
 
+        <boolean name="shouldSkip" persistent="false"/>
+
         <hasMany name="operationalTasks" model="operationalTask" joinField="schedulePosition"/>
         <hasMany name="currentWorkstationChangeoverForSchedulePositions" model="workstationChangeoverForSchedulePosition"
                  joinField="currentSchedulePosition" cascade="delete"/>
@@ -62,6 +64,9 @@
     </fields>
 
     <hooks>
+        <onSave
+                class="com.qcadoo.mes.orders.hooks.SchedulePositionHooks"
+                method="onSave"/>
         <validatesWith
                 class="com.qcadoo.mes.orders.validators.SchedulePositionValidators"
                 method="onValidate"/>

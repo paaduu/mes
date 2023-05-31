@@ -258,7 +258,7 @@ public class ScheduleDetailsListenersPS {
             finishDate = getFinishDateWithChildren(position, finishDate);
             Entity previousPosition = workstationsPositions.get(workstation.getId());
             List<Entity> workstationChangeovers = workstationChangeoverService.findWorkstationChangeoversForSchedulePosition(finishDate, workstation, position, previousPosition);
-            finishDate = getFinisDateWithChangeovers(finishDate, workstationChangeovers);
+            finishDate = getFinishDateWithChangeovers(finishDate, workstationChangeovers);
             DateTime finishDateTime = new DateTime(finishDate);
             Entity productionLine = workstation.getBelongsToField(WorkstationFieldsPL.PRODUCTION_LINE);
             Date newStartDate = shiftsService
@@ -279,7 +279,7 @@ public class ScheduleDetailsListenersPS {
         return allMachineWorkTimesEqualsZero;
     }
 
-    private Date getFinisDateWithChangeovers(Date finishDate, List<Entity> workstationChangeovers) {
+    private Date getFinishDateWithChangeovers(Date finishDate, List<Entity> workstationChangeovers) {
         if (!workstationChangeovers.isEmpty()) {
             Optional<Date> mayBeMaxFinishDate = workstationChangeoverService.getWorkstationChangeoversMaxFinishDate(workstationChangeovers);
             if (mayBeMaxFinishDate.isPresent()) {
