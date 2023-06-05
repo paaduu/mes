@@ -22,8 +22,7 @@ public class WorkstationChangeoverForOperationalTaskHooks {
     public boolean validatesWith(final DataDefinition workstationChangeoverForOperationalTaskDD, final Entity workstationChangeoverForOperationalTask) {
         boolean isValid = true;
 
-        isValid = isValid && validateOperationalTask(workstationChangeoverForOperationalTaskDD, workstationChangeoverForOperationalTask);
-        isValid = isValid && validateDates(workstationChangeoverForOperationalTaskDD, workstationChangeoverForOperationalTask);
+        isValid = validateOperationalTask(workstationChangeoverForOperationalTaskDD, workstationChangeoverForOperationalTask);
 
         return isValid;
     }
@@ -49,7 +48,7 @@ public class WorkstationChangeoverForOperationalTaskHooks {
         return true;
     }
 
-    private boolean validateDates(final DataDefinition workstationChangeoverForOperationalTaskDD, final Entity workstationChangeoverForOperationalTask) {
+    public boolean validateDates(final DataDefinition workstationChangeoverForOperationalTaskDD, final Entity workstationChangeoverForOperationalTask) {
         Date startDate = workstationChangeoverForOperationalTask.getDateField(WorkstationChangeoverForOperationalTaskFields.START_DATE);
         Date finishDate = workstationChangeoverForOperationalTask.getDateField(WorkstationChangeoverForOperationalTaskFields.FINISH_DATE);
         Entity currentOperationalTask = workstationChangeoverForOperationalTask.getBelongsToField(WorkstationChangeoverForOperationalTaskFields.CURRENT_OPERATIONAL_TASK);

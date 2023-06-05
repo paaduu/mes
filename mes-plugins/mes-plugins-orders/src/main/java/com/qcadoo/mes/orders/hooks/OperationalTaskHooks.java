@@ -160,7 +160,7 @@ public class OperationalTaskHooks {
             deleteWorkstationChangeoverForOperationalTasks(operationalTask);
             setPreviousWorkstationChangeoverForOperationalTasks(operationalTask, true);
         } else {
-            if (Objects.isNull(operationalTaskId) || checkIfOperationalTaskDataChanged(operationalTask, workstation, startDate)) {
+            if (Objects.isNull(operationalTaskId) || checkIfOperationalTaskDataChanged(operationalTask, workstation, startDate) || shouldSkip) {
                 if (!shouldSkip) {
                     setCurrentWorkstationChangeoverForOperationalTasks(operationalTask);
                 }

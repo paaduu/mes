@@ -8,6 +8,7 @@ import com.qcadoo.mes.operationTimeCalculations.OperationWorkTimeService;
 import com.qcadoo.mes.orders.OperationalTasksService;
 import com.qcadoo.mes.orders.constants.OperationalTaskFields;
 import com.qcadoo.mes.orders.hooks.OperationalTaskHooks;
+import com.qcadoo.mes.orders.hooks.WorkstationChangeoverForOperationalTaskHooks;
 import com.qcadoo.mes.orders.services.WorkstationChangeoverService;
 import com.qcadoo.mes.orders.validators.OperationalTaskValidators;
 import com.qcadoo.mes.productionLines.constants.WorkstationFieldsPL;
@@ -51,6 +52,9 @@ public class OperationalTaskHooksPS {
 
     @Autowired
     private WorkstationChangeoverService workstationChangeoverService;
+
+    @Autowired
+    private WorkstationChangeoverForOperationalTaskHooks workstationChangeoverForOperationalTaskHooks;
 
     public void onSave(final DataDefinition operationalTaskDD, final Entity operationalTask) {
         setDates(operationalTaskDD, operationalTask, true, true);
@@ -186,9 +190,15 @@ public class OperationalTaskHooksPS {
         }
 
         if (Objects.nonNull(dateFrom) || Objects.nonNull(dateTo) || workstationChanged) {
-            boolean isValid = operationalTaskValidators.datesAreInCorrectOrder(operationalTaskDD, operationalTask);
+            List<Entity> workstationChangeoverForOperationalTasks = operationalTask.getHasManyField(OperationalTaskFields.CURRENT_WORKSTATION_CHANGEOVER_FOR_OPERATIONAL_TASKS);
 
-            if (isValid && operationalTaskValidators.datesAreCorrect(operationalTaskDD, operationalTask)) {
+            workstationChangeoverForOperationalTasks.forEach(workstationChangeoverForOperationalTask -> {
+                workstationChangeoverForOperationalTaskHooks.validatesWith(workstationChangeoverForOperationalTask.getDataDefinition(), workstationChangeoverForOperationalTask);
+            });
+
+            boolean isValid = workstationChangeoverForOperationalTasks.stream().allMatch(Entity::isValid);
+
+            if (isValid && operationalTaskValidators.datesAreInCorrectOrder(operationalTaskDD, operationalTask) && operationalTaskValidators.datesAreCorrect(operationalTaskDD, operationalTask)) {
                 operationalTaskHooks.changeDateInOrder(operationalTask);
             }
         }
