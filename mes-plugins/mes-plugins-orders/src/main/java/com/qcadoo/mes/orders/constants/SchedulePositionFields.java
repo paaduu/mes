@@ -33,8 +33,6 @@ public class SchedulePositionFields {
 
     public static final String PARTIAL_OPERATION_RUNS = "partialOperationRuns";
 
-    public static final String SHOULD_SKIP = "shouldSkip";
-
     public static final String CURRENT_WORKSTATION_CHANGEOVER_FOR_SCHEDULE_POSITIONS = "currentWorkstationChangeoverForSchedulePositions";
 
     public static final String PREVIOUS_WORKSTATION_CHANGEOVER_FOR_SCHEDULE_POSITIONS = "previousWorkstationChangeoverForSchedulePositions";
