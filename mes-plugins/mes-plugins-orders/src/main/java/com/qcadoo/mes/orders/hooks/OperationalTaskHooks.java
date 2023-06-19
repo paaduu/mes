@@ -16,6 +16,7 @@ import com.qcadoo.mes.orders.states.OperationalTasksServiceMarker;
 import com.qcadoo.mes.orders.states.constants.OperationalTaskStateStringValues;
 import com.qcadoo.mes.technologies.constants.OperationFields;
 import com.qcadoo.mes.technologies.constants.TechnologyOperationComponentFields;
+import com.qcadoo.mes.technologies.services.WorkstationChangeoverNormService;
 import com.qcadoo.model.api.DataDefinition;
 import com.qcadoo.model.api.Entity;
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +44,9 @@ public class OperationalTaskHooks {
 
     @Autowired
     private WorkstationChangeoverService workstationChangeoverService;
+
+    @Autowired
+    private WorkstationChangeoverNormService workstationChangeoverNormService;
 
     public void onCopy(final DataDefinition operationalTaskDD, final Entity operationalTask) {
         setInitialState(operationalTask);
@@ -160,11 +164,13 @@ public class OperationalTaskHooks {
             deleteWorkstationChangeoverForOperationalTasks(operationalTask);
             setPreviousWorkstationChangeoverForOperationalTasks(operationalTask, true);
         } else {
-            if (Objects.isNull(operationalTaskId) || checkIfOperationalTaskDataChanged(operationalTask, workstation, startDate) || shouldSkip) {
-                if (!shouldSkip) {
-                    setCurrentWorkstationChangeoverForOperationalTasks(operationalTask);
+            if (workstationChangeoverNormService.hasWorkstationChangeoverNorms(workstation)) {
+                if (Objects.isNull(operationalTaskId) || checkIfOperationalTaskDataChanged(operationalTask, workstation, startDate) || shouldSkip) {
+                    if (!shouldSkip) {
+                        setCurrentWorkstationChangeoverForOperationalTasks(operationalTask);
+                    }
+                    setPreviousWorkstationChangeoverForOperationalTasks(operationalTask, false);
                 }
-                setPreviousWorkstationChangeoverForOperationalTasks(operationalTask, false);
             }
         }
     }
